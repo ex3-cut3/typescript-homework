@@ -1,5 +1,5 @@
-import { ajax } from './helpers/helper';
-import { Film } from './helpers/interfaces';
+import {ajax} from './helpers/helper';
+import {Film} from './helpers/interfaces';
 
 export const state = {
     search: {
@@ -30,17 +30,17 @@ export const loadResults = async (url: string, page: number): Promise<void> => {
                 overview: film.overview
                     ? (film.overview as string)
                     : 'This film(' +
-                      film.title +
-                      ") doesn't have" +
-                      ' description',
+                    film.title +
+                    ") doesn't have" +
+                    ' description',
                 poster_path:
                     film.poster_path === null
-                        ? '/src/imgs/image.png'
+                        ? 'src/imgs/image.png'
                         : `https://image.tmdb.org/t/p/original/${film.poster_path}`,
                 release_date: film.release_date as string,
                 backdrop_path:
                     film.backdrop_path === null
-                        ? '/src/imgs/image.png'
+                        ? 'src/imgs/image.png'
                         : `https://image.tmdb.org/t/p/original/${film.backdrop_path}`,
                 isBookmarked: state.bookmarks.some(
                     (bookmark: Film) => bookmark.id === film.id
@@ -75,7 +75,9 @@ export const dealBookmarks = (fnHandler: (...args: never[]) => void): void => {
     document
         .querySelector('#film-container')
         ?.addEventListener('click', (event) => {
-            const el: SVGSVGElement | null = (event.target as HTMLElement).closest('svg'); // (1)
+            const el: SVGSVGElement | null = (
+                event.target as HTMLElement
+            ).closest('svg'); // (1)
             if (!el) return;
 
             const id: string | undefined = el.dataset.filmId;
