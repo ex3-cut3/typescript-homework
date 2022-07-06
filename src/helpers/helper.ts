@@ -1,5 +1,4 @@
 import {TIMEOUT_SECONDS} from "./config";
-import {FilmData} from "./interfaces";
 
 const timeout = function (s: number) {
     return new Promise(function (_, reject) {
@@ -9,7 +8,7 @@ const timeout = function (s: number) {
     });
 };
 
-export const ajax = async function (url: string): Promise<FilmData> {
+export const ajax = async function (url: string): Promise<any> {
     try {
         const res: unknown = await Promise.race([fetch(url), timeout(TIMEOUT_SECONDS)]);
         const data = await res.json();

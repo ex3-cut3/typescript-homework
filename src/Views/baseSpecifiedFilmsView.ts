@@ -24,6 +24,7 @@ class baseSpecifiedFilmsView extends View {
     addHandlerOnChange(handler: () => void, eventTarget: HTMLElement) {
         eventTarget.addEventListener('change', (event) => {
             event.preventDefault();
+            (document.querySelector('#search') as HTMLInputElement).value = '';
             handler();
         });
     }

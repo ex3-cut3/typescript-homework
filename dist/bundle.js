@@ -3245,6 +3245,7 @@ class baseSpecifiedFilmsView extends _view__WEBPACK_IMPORTED_MODULE_0__["default
   addHandlerOnChange(handler, eventTarget) {
     eventTarget.addEventListener('change', event => {
       event.preventDefault();
+      document.querySelector('#search').value = '';
       handler();
     });
   }
@@ -3279,16 +3280,12 @@ class bookmarksView extends _view__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
     _defineProperty(this, "_parentElement", document.querySelector('#favorite-movies'));
 
-    _defineProperty(this, "_errorMessage", 'Pick some magnificent favourite films.');
+    _defineProperty(this, "_errorMessage", '');
 
     _defineProperty(this, "_message", '');
 
     _defineProperty(this, "_generateMarkup", () => {
-      if (this._data.length === 0) {
-        return "<div class=\"alert alert-info\" role=\"alert\">".concat(this._errorMessage, "</div>");
-      }
-
-      return this._data.map(film => "\n        <div class=\"col-12 p-2\">\n                    <div class=\"card shadow-sm\">\n                        <img alt=\"Film ".concat(film.title, " poster\" src=\"").concat(film.poster_path, "\">\n                        <svg xmlns=\"http://www.w3.org/2000/svg\" stroke=\"red\" fill=\"red\" width=\"50\" height=\"50\" class=\"bi bi-heart-fill position-absolute p-2\" viewBox=\"0 -2 18 22\">\n                            <path fill-rule=\"evenodd\" d=\"M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z\"></path>\n                        </svg>\n                        <div class=\"card-body\">\n                            <p class=\"card-text truncate\">\n                                ").concat(film.overview, "\n                            </p>\n                            <div class=\"\n                                    d-flex\n                                    justify-content-between\n                                    align-items-center\n                                \">\n                                <small class=\"text-muted\">").concat(film.release_date, "</small>\n                            </div>\n                        </div>\n                    </div>\n                </div>\n        ")).join('');
+      return this._data.map(film => "\n        <div class=\"col-12 p-2\" id=\"".concat(film.id, "-bookmark\">\n                    <div class=\"card shadow-sm\">\n                        <img alt=\"Film ").concat(film.title, " poster\" src=\"").concat(film.poster_path, "\">\n                        <svg xmlns=\"http://www.w3.org/2000/svg\" stroke=\"red\" fill=").concat(film.isBookmarked ? 'red' : 'none', " width=\"50\" height=\"50\" class=\"bi bi-heart-fill position-absolute p-2\" viewBox=\"0 -2 18 22\" data-film-id=").concat(film.id, "-bookmark>\n                            <path fill-rule=\"evenodd\" d=\"M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z\"></path>\n                        </svg>\n                        <div class=\"card-body\">\n                            <p class=\"card-text truncate\">\n                                ").concat(film.overview, "\n                            </p>\n                            <div class=\"\n                                    d-flex\n                                    justify-content-between\n                                    align-items-center\n                                \">\n                                <small class=\"text-muted\">").concat(film.release_date, "</small>\n                            </div>\n                        </div>\n                    </div>\n                </div>\n        ")).join('');
     });
 
     _defineProperty(this, "initHandlerOnClick", function (handler) {
@@ -3505,9 +3502,6 @@ class SearchView {
   addHandlerSearch(handler) {
     this._parentElement.addEventListener('submit', event => {
       event.preventDefault();
-      document.querySelectorAll('#button-wrapper>input').forEach(button => {
-        button.checked = false;
-      });
       handler();
     });
   }
@@ -3610,6 +3604,9 @@ const controlSearchResults = async function () {
     // load search results
     const query = _Views_searchView__WEBPACK_IMPORTED_MODULE_1__["default"].getQuery();
     if (!query || query === '') return;
+    document.querySelectorAll('#button-wrapper>input').forEach(button => {
+      button.checked = false;
+    });
     await baseControl("".concat(_helpers_config__WEBPACK_IMPORTED_MODULE_3__.API_URL, "search/movie?api_key=").concat(_helpers_config__WEBPACK_IMPORTED_MODULE_3__.KEY, "&language=en-US&query=").concat(query));
   } catch (e) {
     console.log(e);
@@ -3655,7 +3652,8 @@ const controlBookmarks = function () {
 
 const controlFlowBookmarks = function () {
   controlBookmarks();
-  _model__WEBPACK_IMPORTED_MODULE_2__.dealBookmarks(controlBookmarks);
+  _model__WEBPACK_IMPORTED_MODULE_2__.dealBookmarks(document.querySelector('#film-container'), true);
+  _model__WEBPACK_IMPORTED_MODULE_2__.dealBookmarks(document.querySelector('#favorite-movies'), false);
 };
 const init = async function () {
   loadBookmarks();
@@ -3772,6 +3770,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "state": () => (/* binding */ state)
 /* harmony export */ });
 /* harmony import */ var _helpers_helper__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./helpers/helper */ "./src/helpers/helper.ts");
+/* harmony import */ var _Views_bookmarksView__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Views/bookmarksView */ "./src/Views/bookmarksView.ts");
+
 
 const state = {
   search: {
@@ -3792,19 +3792,7 @@ const loadResults = async (url, page) => {
     state.search.url = url; // console.log('Trying this!!! - bookmarks');
     // console.log(state.bookmarks);
 
-    state.search.results = data.results.map(film => {
-      // console.log(state.bookmarks.some((bookmark: Film) => bookmark.id === film.id));
-      return {
-        id: film.id,
-        title: film.title,
-        overview: film.overview ? film.overview : 'This film(' + film.title + ") doesn't have" + ' description',
-        poster_path: film.poster_path === null ? 'src/imgs/image.png' : "https://image.tmdb.org/t/p/original/".concat(film.poster_path),
-        release_date: film.release_date,
-        backdrop_path: film.backdrop_path === null ? 'src/imgs/image.png' : "https://image.tmdb.org/t/p/original/".concat(film.backdrop_path),
-        isBookmarked: state.bookmarks.some(bookmark => bookmark.id === film.id) //...( film.key && { key: film.key } ),
-
-      };
-    });
+    state.search.results = mapper(data);
 
     if (page === 1) {
       state.allRenderedFilms = state.search.results;
@@ -3817,6 +3805,23 @@ const loadResults = async (url, page) => {
     throw e;
   }
 };
+
+const mapper = data => {
+  return data.results.map(film => {
+    // console.log(state.bookmarks.some((bookmark: Film) => bookmark.id === film.id));
+    return {
+      id: film.id,
+      title: film.title,
+      overview: film.overview ? film.overview : 'This film(' + film.title + ") doesn't have description",
+      poster_path: film.poster_path === null ? 'src/imgs/image.png' : "https://image.tmdb.org/t/p/original/".concat(film.poster_path),
+      release_date: film.release_date,
+      backdrop_path: film.backdrop_path === null ? 'src/imgs/image.png' : "https://image.tmdb.org/t/p/original/".concat(film.backdrop_path),
+      isBookmarked: state.bookmarks.some(bookmark => bookmark.id === film.id) //...( film.key && { key: film.key } ),
+
+    };
+  });
+};
+
 const getSearchResultsPage = function () {
   let page = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : state.search.page;
   state.search.page = page;
@@ -3826,33 +3831,50 @@ const persistBookmarks = () => {
   const data = JSON.stringify(state.bookmarks);
   localStorage.setItem('bookmarks', data);
 };
-const dealBookmarks = fnHandler => {
-  var _document$querySelect;
+const dealBookmarks = (container, isFilmContainer) => {
+  container === null || container === void 0 ? void 0 : container.addEventListener('click', event => {
+    var _id;
 
-  (_document$querySelect = document.querySelector('#film-container')) === null || _document$querySelect === void 0 ? void 0 : _document$querySelect.addEventListener('click', event => {
     const el = event.target.closest('svg'); // (1)
 
     if (!el) return;
-    const id = el.dataset.filmId;
-    if (!id) return; //console.log('Checking el!');
-
+    let id = el.dataset.filmId;
+    if (!id) return;
+    id = (_id = id) === null || _id === void 0 ? void 0 : _id.split('-', 1)[0];
     const film = state.allRenderedFilms.find(film => film.id === +id);
-    if (!film) return;
+
+    if (!film && !isFilmContainer) {
+      // if removing bookmark while attending another page than from the film was
+      // marked as bookmarked via the side container;
+      removingEL(id).isBookmarked = false;
+      persistBookmarks();
+      return;
+    }
+
     film.isBookmarked = !film.isBookmarked;
     let fillColor;
 
     if (film.isBookmarked) {
+      _Views_bookmarksView__WEBPACK_IMPORTED_MODULE_1__["default"].render([film], false);
       state.bookmarks.push(film);
       fillColor = '#F00';
     } else {
       fillColor = 'none';
-      state.bookmarks.splice(state.bookmarks.findIndex(bookmark => bookmark.id === film.id), 1);
+      removingEL(id);
+      document.querySelector("[data-film-id|='".concat(id, "'")).style.fill = 'none';
     }
 
     el.style.fill = fillColor;
     persistBookmarks();
-    fnHandler();
   });
+};
+
+const removingEL = id => {
+  var _document$getElementB;
+
+  (_document$getElementB = document.getElementById(id + '-bookmark')) === null || _document$getElementB === void 0 ? void 0 : _document$getElementB.remove();
+  const [deletedFilm] = state.bookmarks.splice(state.bookmarks.findIndex(bookmark => bookmark.id === +id), 1);
+  return deletedFilm;
 };
 
 /***/ }),

@@ -13,6 +13,11 @@ const controlSearchResults = async function () {
         // load search results
         const query = searchView.getQuery();
         if (!query || query === '') return;
+        document
+            .querySelectorAll('#button-wrapper>input')
+            .forEach((button) => {
+                (<HTMLInputElement>button).checked = false;
+            });
         await baseControl(
             `${API_URL}search/movie?api_key=${KEY}&language=en-US&query=${query}`
         );
@@ -59,7 +64,8 @@ const controlBookmarks = function (): void {
 };
 export const controlFlowBookmarks = function (): void {
     controlBookmarks();
-    model.dealBookmarks(controlBookmarks);
+     model.dealBookmarks( document.querySelector('#film-container') as HTMLElement, true);
+     model.dealBookmarks(document.querySelector('#favorite-movies') as HTMLElement, false);
 };
 
 export const init = async function (): Promise<void> {

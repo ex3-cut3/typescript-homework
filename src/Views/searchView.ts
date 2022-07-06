@@ -19,12 +19,6 @@ class SearchView {
     addHandlerSearch(handler: () => void) {
         this._parentElement.addEventListener('submit', (event) => {
             event.preventDefault();
-            document
-                .querySelectorAll('#button-wrapper>input')
-                .forEach((button) => {
-                    (<HTMLInputElement>button).checked = false;
-                });
-
             handler();
         });
     }
